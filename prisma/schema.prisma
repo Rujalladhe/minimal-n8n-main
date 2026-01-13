@@ -1,0 +1,20 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Workflow {
+  id        String   @id @default(uuid())
+  name      String
+  nodes     String
+  edges     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
