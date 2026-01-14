@@ -35,18 +35,14 @@ export function Hero() {
                     </Link>
                 </div>
 
-                {/* Main Landscape Hero Image / Video Container */}
-                <div className="mt-24 relative mx-auto max-w-6xl animate-fade-in-up delay-400 px-4">
-                    <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-3 shadow-[0_0_50px_-12px_rgba(59,130,246,0.5)] overflow-hidden">
-                        <div className="aspect-[21/9] rounded-xl bg-[#0a0a0a] overflow-hidden border border-white/5 relative group">
-                            <video
-                                src="/hero-video.mp4"
-        
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                className="w-full h-full object-cover group-hover:opacity-100 transition-opacity duration-700"
+                {/* Main Landscape Hero Image Container */}
+                <div className="mt-20 md:mt-24 relative mx-auto max-w-6xl animate-fade-in-up delay-400 px-4">
+                    <div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-2 md:p-3 shadow-[0_0_50px_-12px_rgba(59,130,246,0.5)] overflow-hidden">
+                        <div className="aspect-video md:aspect-[21/9] rounded-xl bg-[#0a0a0a] overflow-hidden border border-white/5 relative group">
+                            <img
+                                src="/hero-image.webp"
+                                alt="n9n Interface"
+                                className="w-full h-full object-contain md:object-cover transition-transform duration-700 group-hover:scale-105"
                             />
 
                             {/* Overlay Gradient for more "Creative" look */}

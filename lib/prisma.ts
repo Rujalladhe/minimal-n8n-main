@@ -12,7 +12,7 @@ export const prisma =
     log: ['query'],
     datasources: {
       db: {
-        url: `file:${dbPath}`,
+        url: process.env.DATABASE_URL || `file:${dbPath}`,
       },
     },
   });
