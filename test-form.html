@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Form Test</title>
+    <style>
+        body {
+            background-color: #f4f4f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- This is exactly how a client would embed the form on their website -->
+        <div id="lead-intel-form"></div>
+        <script src="http://localhost:3000/embed/form.js"
+                data-webhook="http://localhost:3000/api/workflows/webhook/onboarding"
+                data-client-key="CLIENT_KEY_DEMO"
+                data-theme="light">
+        </script>
+    </div>
+
+</body>
+</html>
