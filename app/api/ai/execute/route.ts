@@ -88,6 +88,24 @@ export async function POST(request: NextRequest) {
         );
         break;
 
+      case "researchAgent":
+        result = await executeResearchAgent(
+          config,
+          input,
+          genAI,
+          modelName
+        );
+        break;
+
+      case "aiScoreEngine":
+        result = await executeScoreEngine(
+          config,
+          input,
+          genAI,
+          modelName
+        );
+        break;
+
       default:
         return NextResponse.json(
           { error: `Unknown AI node type: ${type}` },
@@ -219,7 +237,7 @@ async function executeChatbot(
   genAI: GoogleGenAI,
   modelName: string
 ) {
-  let { systemPrompt, userMessage, personality } = config;
+  let { systemPrompt, userMessage, personality, companyContext } = config;
 
   // Process template variables
   systemPrompt = replaceTemplateVariables(systemPrompt, input);
@@ -231,8 +249,15 @@ async function executeChatbot(
     concise: "Respond with brief, to-the-point answers.",
   };
 
-  const fullSystemPrompt = `${systemPrompt}\n\n${personalityPrompts[personality as keyof typeof personalityPrompts] || ""
+  let fullSystemPrompt = `${systemPrompt}\n\n${personalityPrompts[personality as keyof typeof personalityPrompts] || ""
     }`;
+
+  // Company context mode: inject enrichment + scoring data
+  if (companyContext || input?.companyName) {
+    const companyData = companyContext ? JSON.parse(companyContext) : input;
+    const companyName = companyData.companyName || companyData.domain || "this company";
+    fullSystemPrompt = `You are a sales intelligence assistant. You have access to the following company research data for ${companyName}:\n\n${JSON.stringify(companyData, null, 2)}\n\nAnswer questions about this company based on this data. If asked something not in the data, say so clearly. Useful questions include: revenue trends, funding history, why they scored HOT/WARM/COLD, comparison to industry benchmarks, suggested outreach strategy.\n\n${fullSystemPrompt}`;
+  }
 
   // Combine system prompt with user message
   const fullPrompt = `${fullSystemPrompt}\n\nUser: ${userMessage}\nAssistant:`;
@@ -248,8 +273,10 @@ async function executeChatbot(
   const chatbotResponse = response.text;
 
   return {
+    ...input,
     response: chatbotResponse,
     personality,
+    hasCompanyContext: !!(companyContext || input?.companyName),
     usage: {
       promptTokens: (response as any).usageMetadata?.promptTokenCount || 0,
       completionTokens: (response as any).usageMetadata?.candidatesTokenCount || 0,
@@ -315,4 +342,243 @@ async function executeDataExtractor(
       note: "Could not parse as JSON, returning raw text",
     };
   }
+}
+
+async function executeResearchAgent(
+  config: any,
+  input: any,
+  genAI: GoogleGenAI,
+  modelName: string
+) {
+  let { companyName, domain, industry, city, companySize, intent } = config;
+
+  // Replace template variables
+  companyName = replaceTemplateVariables(companyName, input);
+  domain = replaceTemplateVariables(domain, input);
+  industry = replaceTemplateVariables(industry, input);
+  city = replaceTemplateVariables(city, input);
+  companySize = replaceTemplateVariables(companySize, input);
+  intent = replaceTemplateVariables(intent, input);
+
+  const systemPrompt = `You are a B2B business intelligence analyst. Research the company and extract structured data. Be factual and concise. If data is unavailable, say so — do not invent numbers.`;
+
+  const userPrompt = `Research this company:
+- Name: ${companyName}
+- Domain: ${domain}
+- Industry: ${industry || "Unknown"}
+- Location: ${city || "Unknown"}
+- Size: ${companySize || "Unknown"}
+- Stated intent: ${intent || "Not provided"}
+
+Find and return:
+1. What the company actually does (2-3 sentences)
+2. Founding year (if findable)
+3. Headquarters location
+4. Employee count estimate
+5. Key products or services
+6. Recent notable news (last 12 months)
+7. Tech stack signals (from job postings, BuiltWith, etc.)
+8. Any public financial signals (funding rounds, revenue mentions)
+9. Key competitors
+10. Overall company health impression (1 sentence)
+11. Estimated Revenue History (last 5 years, numeric millions for charting)
+12. Estimated Hiring Trend (last 6 months headcount for charting)
+13. Brand Sentiment Analysis (0-100 split for Positive/Neutral/Negative)
+14. Intent Analysis (Score 1-10 on 4-5 topics related to their buying intent)
+15. Competitor Market Share (Estimated percentages)
+
+Return as structured JSON only with these exact keys:
+{
+  "companyDescription": "string",
+  "foundedYear": "number or null",
+  "hq": "string or null",
+  "employeeEstimate": "number or null",
+  "products": ["string"],
+  "recentNews": ["string"],
+  "techStack": ["string"],
+  "financialSignals": ["string"],
+  "competitors": ["string"],
+  "healthImpression": "string",
+  "revenueHistory": [{"year": "string", "revenue": "number (in millions)"}],
+  "hiringTrend": [{"month": "string", "headcount": "number"}],
+  "sentiment": {"positive": "number", "neutral": "number", "negative": "number"},
+  "intentAnalysis": [{"topic": "string", "score": "number"}],
+  "competitorMarketShare": [{"name": "string", "share": "number"}]
+}`;
+
+  const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+
+  const response = await genAI.models.generateContent({
+    model: modelName,
+    contents: fullPrompt,
+    config: {
+      temperature: 0.3,
+    },
+  });
+
+  const rawText = response.text || "";
+
+  // Try to parse JSON from response
+  let researchData: any = {};
+  try {
+    let jsonString = rawText.trim();
+    if (jsonString.startsWith("```")) {
+      jsonString = jsonString.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    }
+    researchData = JSON.parse(jsonString);
+  } catch (e) {
+    researchData = { rawResearch: rawText, parseError: true };
+  }
+
+  return {
+    ...researchData,
+    companyName,
+    domain,
+    industry,
+    city,
+    companySize,
+    intent,
+    researchedAt: new Date().toISOString(),
+    usage: {
+      promptTokens: (response as any).usageMetadata?.promptTokenCount || 0,
+      completionTokens: (response as any).usageMetadata?.candidatesTokenCount || 0,
+      totalTokens: (response as any).usageMetadata?.totalTokenCount || 0,
+    },
+  };
+}
+
+async function executeScoreEngine(
+  config: any,
+  input: any,
+  genAI: GoogleGenAI,
+  modelName: string
+) {
+  // Step 1: Deterministic signal scoring
+  const d = input || {};
+  let score = 0;
+  const signals: string[] = [];
+
+  // Revenue signals
+  const revenue = d.revenue || d.enrichment?.revenue || null;
+  if (revenue) {
+    const rev = typeof revenue === "number" ? revenue : parseFloat(String(revenue).replace(/[^0-9.]/g, ""));
+    if (rev > 100_000_000) { score += 30; signals.push("Revenue >$100M"); }
+    else if (rev > 10_000_000) { score += 20; signals.push("Revenue >$10M"); }
+    else if (rev > 1_000_000) { score += 10; signals.push("Revenue >$1M"); }
+  }
+
+  // Growth signals
+  const revenueGrowth = d.revenueGrowth || d.enrichment?.revenueGrowth || null;
+  if (revenueGrowth) {
+    const growth = typeof revenueGrowth === "number" ? revenueGrowth : parseFloat(String(revenueGrowth));
+    if (growth > 0.3) { score += 20; signals.push("Revenue growth >30%"); }
+    else if (growth > 0.1) { score += 10; signals.push("Revenue growth >10%"); }
+  }
+
+  // Headcount
+  const employeeCount = d.employeeEstimate || d.employeeCount || d.enrichment?.employeeCount || null;
+  if (employeeCount) {
+    const count = typeof employeeCount === "number" ? employeeCount : parseInt(String(employeeCount));
+    if (count > 500) { score += 10; signals.push("Large team (500+)"); }
+    else if (count > 50) { score += 5; signals.push("Mid-size team (50+)"); }
+  }
+
+  // Funding signals
+  const totalFunding = d.totalFunding || d.enrichment?.totalFunding || null;
+  const latestFundingDate = d.latestFundingDate || d.enrichment?.latestFundingDate || null;
+  if (totalFunding) {
+    if (latestFundingDate) {
+      const fundingDate = new Date(latestFundingDate);
+      const now = new Date();
+      const monthsDiff = (now.getFullYear() - fundingDate.getFullYear()) * 12 + (now.getMonth() - fundingDate.getMonth());
+      if (monthsDiff < 6) { score += 25; signals.push("Funded <6 months ago"); }
+      else if (monthsDiff < 18) { score += 15; signals.push("Funded <18 months ago"); }
+      else { score += 5; signals.push("Has funding history"); }
+    } else {
+      score += 5; signals.push("Has funding history");
+    }
+  }
+
+  // Web traffic
+  const trafficGrowth = d.trafficGrowthMoM || d.enrichment?.trafficGrowthMoM || null;
+  if (trafficGrowth) {
+    const tg = typeof trafficGrowth === "number" ? trafficGrowth : parseFloat(String(trafficGrowth));
+    if (tg > 0.2) { score += 10; signals.push("Traffic growing >20% MoM"); }
+  }
+
+  // Company size from form
+  if (d.companySize === "201–1000" || d.companySize === "1000+") {
+    score += 5; signals.push("Self-reported mid-to-large company");
+  }
+
+  score = Math.min(score, 100);
+
+  // Determine numeric tier
+  const hotThreshold = parseInt(config.hotThreshold || "70");
+  const warmThreshold = parseInt(config.warmThreshold || "40");
+  let numericTier = "COLD";
+  if (score >= hotThreshold) numericTier = "HOT";
+  else if (score >= warmThreshold) numericTier = "WARM";
+
+  // Step 2: AI verdict
+  const aiSystemPrompt = `You are a B2B sales qualification expert. Given a company's financial and growth profile, assess if they are a high-value lead. Be direct and concise.`;
+
+  const aiUserPrompt = `Company data:
+${JSON.stringify(input, null, 2)}
+
+Numeric score: ${score}/100 (tier: ${numericTier})
+Signals detected: ${signals.join(", ") || "None"}
+Original intent from form: ${d.intent || "Not provided"}
+
+Based on ALL of this data, provide your assessment as JSON only:
+{
+  "aiVerdict": "HOT or WARM or COLD",
+  "confidence": 0.0 to 1.0,
+  "reasoning": "2-3 sentence explanation",
+  "greenFlags": ["string array of positive signals"],
+  "redFlags": ["string array of concerns"],
+  "recommendedAction": "Call within 24 hours | Add to nurture | Monitor only",
+  "estimatedDealSize": "string or null",
+  "bestAngle": "What pain point to lead with in outreach"
+}`;
+
+  const fullPrompt = `${aiSystemPrompt}\n\n${aiUserPrompt}`;
+
+  let aiResult: any = {};
+  try {
+    const response = await genAI.models.generateContent({
+      model: modelName,
+      contents: fullPrompt,
+      config: {
+        temperature: 0.4,
+      },
+    });
+
+    const rawText = response.text || "";
+    let jsonString = rawText.trim();
+    if (jsonString.startsWith("```")) {
+      jsonString = jsonString.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    }
+    aiResult = JSON.parse(jsonString);
+  } catch (e) {
+    aiResult = {
+      aiVerdict: numericTier,
+      confidence: 0.5,
+      reasoning: "AI verdict unavailable — using numeric score only.",
+      greenFlags: signals,
+      redFlags: [],
+      recommendedAction: numericTier === "HOT" ? "Call within 24 hours" : numericTier === "WARM" ? "Add to nurture" : "Monitor only",
+      estimatedDealSize: null,
+      bestAngle: "Unable to determine — review manually",
+    };
+  }
+
+  return {
+    ...input,
+    score,
+    numericTier,
+    signals,
+    ...aiResult,
+    scoredAt: new Date().toISOString(),
+  };
 }

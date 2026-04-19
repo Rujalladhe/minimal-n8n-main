@@ -10,6 +10,10 @@ import {
   Mail,
   GitBranch,
   Timer,
+  Search,
+  Target,
+  Filter,
+  BarChart3,
 } from "lucide-react";
 
 export interface NodeDefinition {
@@ -417,6 +421,145 @@ export const nodeDefinitions: Record<string, NodeDefinition> = {
           { value: "seconds", label: "Seconds" },
         ],
         defaultValue: "milliseconds",
+      },
+    ],
+  },
+
+  researchAgent: {
+    type: "researchAgent",
+    label: "Research Agent",
+    description: "AI-powered company research & intelligence",
+    category: "ai",
+    icon: Search,
+    color: "bg-gradient-to-r from-purple-500 to-indigo-500",
+    defaultConfig: {
+      companyName: "{{input.companyName}}",
+      domain: "{{input.domain}}",
+      industry: "{{input.industry}}",
+      city: "{{input.city}}",
+      companySize: "{{input.companySize}}",
+      intent: "{{input.intent}}",
+    },
+    configFields: [
+      {
+        name: "companyName",
+        label: "Company Name",
+        type: "text",
+        placeholder: "{{input.companyName}}",
+        required: true,
+      },
+      {
+        name: "domain",
+        label: "Domain",
+        type: "text",
+        placeholder: "{{input.domain}}",
+        required: true,
+      },
+      {
+        name: "industry",
+        label: "Industry",
+        type: "text",
+        placeholder: "{{input.industry}}",
+      },
+      {
+        name: "city",
+        label: "City / Location",
+        type: "text",
+        placeholder: "{{input.city}}",
+      },
+      {
+        name: "companySize",
+        label: "Company Size",
+        type: "text",
+        placeholder: "{{input.companySize}}",
+      },
+      {
+        name: "intent",
+        label: "Stated Intent",
+        type: "textarea",
+        placeholder: "{{input.intent}}",
+      },
+    ],
+  },
+
+  aiScoreEngine: {
+    type: "aiScoreEngine",
+    label: "AI Scoring Engine",
+    description: "Score & qualify leads with deterministic signals + AI verdict",
+    category: "ai",
+    icon: Target,
+    color: "bg-gradient-to-r from-amber-500 to-orange-500",
+    defaultConfig: {
+      hotThreshold: "70",
+      warmThreshold: "40",
+    },
+    configFields: [
+      {
+        name: "hotThreshold",
+        label: "HOT Threshold (score ≥)",
+        type: "number",
+        placeholder: "70",
+        defaultValue: "70",
+      },
+      {
+        name: "warmThreshold",
+        label: "WARM Threshold (score ≥)",
+        type: "number",
+        placeholder: "40",
+        defaultValue: "40",
+      },
+    ],
+  },
+
+  leadClassifier: {
+    type: "leadClassifier",
+    label: "Lead Classifier",
+    description: "Classify leads as HOT / WARM / COLD based on score",
+    category: "logic",
+    icon: Filter,
+    color: "bg-gradient-to-r from-rose-500 to-red-500",
+    defaultConfig: {
+      hotThreshold: "70",
+      warmThreshold: "40",
+    },
+    configFields: [
+      {
+        name: "hotThreshold",
+        label: "HOT Threshold (score ≥)",
+        type: "number",
+        placeholder: "70",
+        defaultValue: "70",
+      },
+      {
+        name: "warmThreshold",
+        label: "WARM Threshold (score ≥)",
+        type: "number",
+        placeholder: "40",
+        defaultValue: "40",
+      },
+    ],
+  },
+
+  kpiDashboard: {
+    type: "kpiDashboard",
+    label: "KPI Dashboard",
+    description: "Visual lead intelligence dashboard with score gauge & KPIs",
+    category: "action",
+    icon: BarChart3,
+    color: "bg-gradient-to-r from-emerald-500 to-cyan-500",
+    defaultConfig: {
+      showChatbotLink: "true",
+    },
+    configFields: [
+      {
+        name: "showChatbotLink",
+        label: "Show Chatbot Link",
+        type: "select",
+        options: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+        defaultValue: "true",
       },
     ],
   },

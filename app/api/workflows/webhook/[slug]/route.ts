@@ -2,6 +2,49 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { WorkflowExecutor } from "@/lib/executor";
 import { WorkflowNode, WorkflowEdge } from "@/lib/types";
+import fs from "fs";
+import path from "path";
+
+// Load client registry
+function loadClients(): Record<string, any> {
+    try {
+        const clientsPath = path.join(process.cwd(), "config", "clients.json");
+        const raw = fs.readFileSync(clientsPath, "utf-8");
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn("Could not load clients.json, client validation disabled");
+        return {};
+    }
+}
+
+// Normalize domain: strip https://, http://, www., trailing slashes
+function normalizeDomain(domain: string): string {
+    if (!domain) return domain;
+    return domain
+        .replace(/^https?:\/\//i, "")
+        .replace(/^www\./i, "")
+        .replace(/\/+$/, "")
+        .trim()
+        .toLowerCase();
+}
+
+// CORS headers for embeddable form cross-origin requests
+function corsHeaders() {
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Key",
+        "Access-Control-Max-Age": "86400",
+    };
+}
+
+// Handle CORS preflight
+export async function OPTIONS() {
+    return new NextResponse(null, {
+        status: 204,
+        headers: corsHeaders(),
+    });
+}
 
 export async function POST(
     request: NextRequest,
@@ -24,8 +67,40 @@ async function handleWebhook(request: NextRequest, slug: string) {
         const origin = request.nextUrl.origin;
         const webhookPath = `/${slug}`; // e.g., /generate
 
-        // 1. Fetch all workflows (since we can't query inside JSON string easily with SQLite/Prisma basic)
-        // Optimization: In a real app, you'd execute a raw SQL query or have a separate Trigger table.
+        // 1. Parse Input Body (if POST) or Params (if GET)
+        let inputData: any = {};
+        try {
+            const contentType = request.headers.get("content-type");
+            if (request.method === "POST" && contentType?.includes("application/json")) {
+                inputData = await request.json();
+            } else {
+                const url = new URL(request.url);
+                inputData = Object.fromEntries(url.searchParams.entries());
+            }
+        } catch (e) {
+            console.warn("Failed to parse input data", e);
+        }
+
+        // 2. Client key validation (for lead pipeline forms)
+        if (inputData.client_key) {
+            const clients = loadClients();
+            const clientInfo = clients[inputData.client_key];
+            if (!clientInfo) {
+                console.warn(`Invalid client_key: ${inputData.client_key}`);
+                return NextResponse.json(
+                    { error: "Invalid client key" },
+                    { status: 403, headers: corsHeaders() }
+                );
+            }
+            console.log(`[Lead Pipeline] Client: ${clientInfo.name} (${inputData.client_key}), Source: ${inputData.sourceUrl || "unknown"}, Time: ${new Date().toISOString()}`);
+        }
+
+        // 3. Normalize domain if present
+        if (inputData.domain) {
+            inputData.domain = normalizeDomain(inputData.domain);
+        }
+
+        // 4. Fetch all workflows
         const workflows = await prisma.workflow.findMany();
 
         let targetWorkflow = null;
@@ -33,7 +108,7 @@ async function handleWebhook(request: NextRequest, slug: string) {
         let nodes: WorkflowNode[] = [];
         let edges: WorkflowEdge[] = [];
 
-        // 2. Find the matching workflow
+        // 5. Find the matching workflow
         for (const workflow of workflows) {
             const parsedNodes: WorkflowNode[] = JSON.parse(workflow.nodes);
 
@@ -55,40 +130,25 @@ async function handleWebhook(request: NextRequest, slug: string) {
         if (!targetWorkflow || !targetTriggerNode) {
             return NextResponse.json(
                 { error: `No workflow found for webhook path: ${webhookPath}` },
-                { status: 404 }
+                { status: 404, headers: corsHeaders() }
             );
         }
 
         console.log(`Executing Workflow: ${targetWorkflow.name} (${targetWorkflow.id})`);
 
-        // 3. Prepare Execution
+        // 6. Prepare Execution
         const executor = new WorkflowExecutor(origin);
         const executionResults: Record<string, any> = {};
         const executedNodeIds = new Set<string>();
 
-        // Parse Input Body (if POST) or Params (if GET)
-        let inputData: any = {};
-        try {
-            const contentType = request.headers.get("content-type");
-            if (request.method === "POST" && contentType?.includes("application/json")) {
-                inputData = await request.json();
-            } else {
-                const url = new URL(request.url);
-                inputData = Object.fromEntries(url.searchParams.entries());
-            }
-        } catch (e) {
-            console.warn("Failed to parse input data", e);
-        }
-
-        // 4. Execution Loop (Simple BFS/dfs traversal)
-        // We need to execute the trigger, then follow edges.
-
-        // Initial Trigger Execution (Pass input data)
+        // 7. Initial Trigger Execution (Pass input data)
         executionResults[targetTriggerNode.id] = {
             body: inputData,
             headers: Object.fromEntries(request.headers.entries()),
             query: Object.fromEntries(new URL(request.url).searchParams.entries()),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            // Flatten lead form fields for easy template access
+            ...inputData,
         };
         executedNodeIds.add(targetTriggerNode.id);
 
@@ -114,20 +174,11 @@ async function handleWebhook(request: NextRequest, slug: string) {
             const previousOutputs: Record<string, any> = {};
 
             // Wait for all parents to be executed? 
-            // For simplicity in this demo, strict topological sort isn't implemented, 
-            // but BFS usually works for trees/DAGs. 
-            // If a parent hasn't executed, we might be executing too early. 
-            // But let's check if all parents are done.
             const allParentsExecuted = incomingEdges.every(e => executedNodeIds.has(e.source));
 
             if (!allParentsExecuted) {
                 // Push back to end of queue to retry later
-                // Note: This matches a simple dependency resolution
                 queue.push(nodeId);
-                // Break infinite loop if we are stuck (cyclic dependency)
-                // For a minimal demo, we'll risk it or add a max retries counter if needed.
-                // Actually, let's just use the data we have.
-                // continue; 
             }
 
             // Collect inputs
@@ -138,9 +189,6 @@ async function handleWebhook(request: NextRequest, slug: string) {
             });
 
             // Build a rich context:
-            // 1. Root Input (from webhook) as 'input'
-            // 2. Immediate parent output as nested 'input' (for node-to-node default)
-            // 3. All nodes by ID (e.g., node-4.generatedText)
             const primaryParentId = incomingEdges[0]?.source;
             const primaryInput = primaryParentId ? executionResults[primaryParentId] : inputData;
 
@@ -172,28 +220,43 @@ async function handleWebhook(request: NextRequest, slug: string) {
                     queue.push(...children);
                 } else {
                     console.error(`Node ${node.id} failed: ${result.error}`);
-                    // Stop this branch? or continue?
-                    // For demo: continue
                 }
             } catch (err) {
                 console.error(`Execution error at ${node.id}:`, err);
             }
         }
 
-        // 5. Return Response
-        // If the last executed node returned something, maybe return that?
-        // Or just a success message.
+        // 8. Save latest execution state back to the workflow so it's visible in the editor UI
+        const updatedNodes = nodes.map(node => {
+            if (executionResults[node.id]) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        output: executionResults[node.id]
+                    }
+                };
+            }
+            return node;
+        });
+
+        await prisma.workflow.update({
+            where: { id: targetWorkflow.id },
+            data: { nodes: JSON.stringify(updatedNodes) }
+        });
+
+        // 9. Return Response with CORS headers
         return NextResponse.json({
             success: true,
             message: "Workflow executed successfully",
             executionResults
-        });
+        }, { headers: corsHeaders() });
 
     } catch (error: any) {
         console.error("Webhook Execution Error:", error);
         return NextResponse.json(
             { error: "Internal Server Error", details: error.message },
-            { status: 500 }
+            { status: 500, headers: corsHeaders() }
         );
     }
 }

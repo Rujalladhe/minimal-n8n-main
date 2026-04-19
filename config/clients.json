@@ -1,0 +1,16 @@
+{
+  "CLIENT_KEY_123": {
+    "name": "Website A",
+    "owner": "owner@websiteA.com",
+    "plan": "free",
+    "allowedDomain": "websiteA.com",
+    "createdAt": "2024-01-01"
+  },
+  "CLIENT_KEY_DEMO": {
+    "name": "Demo Client",
+    "owner": "demo@example.com",
+    "plan": "free",
+    "allowedDomain": "*",
+    "createdAt": "2024-01-01"
+  }
+}

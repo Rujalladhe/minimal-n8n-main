@@ -144,6 +144,9 @@ export class WorkflowExecutor {
       case "sendEmail":
         return await this.executeSendEmail(config, input);
 
+      case "kpiDashboard":
+        return this.executeKpiDashboard(config, input);
+
       default:
         return {
           success: false,
@@ -303,6 +306,9 @@ export class WorkflowExecutor {
       case "delay":
         return await this.executeDelay(config, input);
 
+      case "leadClassifier":
+        return this.executeLeadClassifier(config, input);
+
       default:
         return {
           success: false,
@@ -358,5 +364,117 @@ export class WorkflowExecutor {
         input,
       },
     };
+  }
+
+  private executeLeadClassifier(
+    config: Record<string, any>,
+    input: any
+  ): NodeExecutionResult {
+    try {
+      const hotThreshold = parseInt(config.hotThreshold || "70");
+      const warmThreshold = parseInt(config.warmThreshold || "40");
+      const score = input?.score ?? input?.numericScore ?? 0;
+
+      let tier: string;
+      let label: string;
+      let color: string;
+      let priority: string;
+
+      if (score >= hotThreshold) {
+        tier = "HOT";
+        label = "🔥 HOT";
+        color = "#ef4444";
+        priority = "immediate";
+      } else if (score >= warmThreshold) {
+        tier = "WARM";
+        label = "🟡 WARM";
+        color = "#f59e0b";
+        priority = "nurture";
+      } else {
+        tier = "COLD";
+        label = "🔵 COLD";
+        color = "#3b82f6";
+        priority = "monitor";
+      }
+
+      return {
+        success: true,
+        output: {
+          ...input,
+          tier,
+          label,
+          tierColor: color,
+          priority,
+          classifiedAt: new Date().toISOString(),
+          thresholds: { hot: hotThreshold, warm: warmThreshold },
+        },
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || "Lead classification failed",
+      };
+    }
+  }
+
+  private executeKpiDashboard(
+    config: Record<string, any>,
+    input: any
+  ): NodeExecutionResult {
+    try {
+      // KPI Dashboard is a pass-through that formats data for display
+      const dashboard = {
+        // Score gauge data
+        score: input?.score ?? 0,
+        tier: input?.tier ?? input?.aiVerdict ?? "UNKNOWN",
+        tierColor: input?.tierColor ?? "#999",
+
+        // AI verdict
+        aiVerdict: input?.aiVerdict ?? null,
+        confidence: input?.confidence ?? null,
+        reasoning: input?.reasoning ?? null,
+
+        // KPI grid
+        kpis: {
+          revenue: input?.revenue ?? input?.enrichment?.revenue ?? input?.financialSignals?.[0] ?? null,
+          revenueGrowth: input?.revenueGrowth ?? input?.enrichment?.revenueGrowth ?? null,
+          employeeCount: input?.employeeCount ?? input?.employeeEstimate ?? input?.enrichment?.employeeEstimate ?? null,
+          totalFunding: input?.totalFunding ?? input?.enrichment?.totalFunding ?? null,
+          lastFundingDate: input?.latestFundingDate ?? input?.enrichment?.latestFundingDate ?? null,
+          lastFundingStage: input?.latestFundingStage ?? input?.enrichment?.latestFundingStage ?? null,
+          webTraffic: input?.webTrafficMonthly ?? input?.enrichment?.webTrafficMonthly ?? null,
+          trafficGrowth: input?.trafficGrowthMoM ?? input?.enrichment?.trafficGrowthMoM ?? null,
+        },
+
+        // Flags
+        greenFlags: input?.greenFlags ?? [],
+        redFlags: input?.redFlags ?? [],
+        signals: input?.signals ?? [],
+
+        // Actions
+        recommendedAction: input?.recommendedAction ?? null,
+        bestAngle: input?.bestAngle ?? null,
+        estimatedDealSize: input?.estimatedDealSize ?? null,
+
+        // Company info
+        companyName: input?.companyName ?? null,
+        domain: input?.domain ?? null,
+        industry: input?.industry ?? null,
+
+        // Meta
+        showChatbotLink: config.showChatbotLink === "true",
+        generatedAt: new Date().toISOString(),
+      };
+
+      return {
+        success: true,
+        output: dashboard,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || "KPI Dashboard rendering failed",
+      };
+    }
   }
 }

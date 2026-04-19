@@ -11,7 +11,11 @@ export type NodeType =
   | "dataTransform"
   | "sendEmail"
   | "ifElse"
-  | "delay";
+  | "delay"
+  | "researchAgent"
+  | "aiScoreEngine"
+  | "leadClassifier"
+  | "kpiDashboard";
 
 export interface NodeData {
   label: string;
