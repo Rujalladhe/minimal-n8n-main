@@ -9418,7 +9418,7 @@
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
       "referrer": "http://localhost:3000/test-tracking.html",
       "startedAt": "2026-04-20T05:18:52.441Z",
-      "lastActiveAt": "2026-04-20T05:22:12.453Z",
+      "lastActiveAt": "2026-04-20T05:23:52.445Z",
       "pages": [
         "/test-tracking.html"
       ],
@@ -9869,6 +9869,186 @@
         {
           "type": "heartbeat",
           "timestamp": "2026-04-20T05:22:12.453Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:17.452Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:22.445Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:27.453Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:32.443Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:37.455Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:42.451Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:47.448Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:52.454Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:22:57.443Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:02.476Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:07.451Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:12.448Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:17.452Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:22.451Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:27.450Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:32.456Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:37.442Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:42.459Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:47.445Z",
+          "data": {
+            "timeOnPage": 40,
+            "scrollDepth": 93,
+            "idle": true
+          }
+        },
+        {
+          "type": "heartbeat",
+          "timestamp": "2026-04-20T05:23:52.445Z",
           "data": {
             "timeOnPage": 40,
             "scrollDepth": 93,
