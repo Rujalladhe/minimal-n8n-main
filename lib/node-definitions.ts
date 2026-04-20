@@ -14,6 +14,7 @@ import {
   Target,
   Filter,
   BarChart3,
+  Eye,
 } from "lucide-react";
 
 export interface NodeDefinition {
@@ -563,4 +564,66 @@ export const nodeDefinitions: Record<string, NodeDefinition> = {
       },
     ],
   },
+
+  websiteTracker: {
+    type: "websiteTracker",
+    label: "Website Tracker",
+    description: "Track visitor behavior on any website (B2C)",
+    category: "trigger",
+    icon: Eye,
+    color: "bg-gradient-to-r from-teal-500 to-cyan-500",
+    defaultConfig: {
+      websiteUrl: "",
+      siteName: "",
+      trackClicks: "true",
+      trackScroll: "true",
+      trackTime: "true",
+    },
+    configFields: [
+      {
+        name: "websiteUrl",
+        label: "Website URL",
+        type: "text",
+        placeholder: "https://example.com",
+        required: true,
+      },
+      {
+        name: "siteName",
+        label: "Site Name",
+        type: "text",
+        placeholder: "My Website",
+      },
+      {
+        name: "trackClicks",
+        label: "Track Clicks",
+        type: "select",
+        options: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+        defaultValue: "true",
+      },
+      {
+        name: "trackScroll",
+        label: "Track Scroll Depth",
+        type: "select",
+        options: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+        defaultValue: "true",
+      },
+      {
+        name: "trackTime",
+        label: "Track Time on Page",
+        type: "select",
+        options: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+        defaultValue: "true",
+      },
+    ],
+  },
 };
+

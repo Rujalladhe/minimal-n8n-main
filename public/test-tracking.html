@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omkara Group Estate — Luxury Residences</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Wapzio Visitor Tracking -->
+  <script src="http://localhost:3000/api/tracking/script?siteId=omkara-main" defer></script>
+  
+  <style>
+    :root {
+      --primary: #0f172a;
+      --gold: #b38b4d;
+      --gold-hover: #967039;
+      --bg: #f8fafc;
+      --text: #334155;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; scroll-behavior: smooth; }
+    h1, h2, h3, h4, .logo { font-family: 'Playfair Display', serif; color: var(--primary); }
+    
+    .nav {
+      position: fixed;
+      top: 0; width: 100%;
+      padding: 1.25rem 4rem;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .nav .logo { font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
+    .nav .links a {
+      color: var(--text);
+      text-decoration: none;
+      margin-left: 2.5rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: color 0.3s;
+    }
+    .nav .links a:hover { color: var(--gold); }
+    
+    .reset-btn {
+      margin-left: 2.5rem;
+      padding: 8px 16px;
+      background: var(--bg);
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover { background: #e2e8f0; }
+
+    .hero {
+      height: 100vh;
+      background: url('/assets/hero.png') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 10%;
+      position: relative;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to right, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.6) 50%, rgba(248, 250, 252, 0) 100%);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+    }
+    .hero h1 {
+      font-size: 4.5rem;
+      font-weight: 600;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: #475569;
+      margin-bottom: 2.5rem;
+      max-width: 450px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 16px 40px;
+      background: var(--primary);
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .btn:hover { background: var(--gold); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(179,139,77,0.3); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 15px 40px;
+    }
+    .btn-outline:hover { background: var(--primary); color: white; }
+
+    section { padding: 6rem 4rem; max-width: 1400px; margin: 0 auto; }
+    .section-title {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4rem;
+      font-size: 0.85rem;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 3rem;
+    }
+    .project-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+      transition: all 0.4s ease;
+      cursor: pointer;
+    }
+    .project-card:hover { transform: translateY(-10px); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+    .project-card img {
+      width: 100%;
+      height: 350px;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    .project-card:hover img { transform: scale(1.05); }
+    .project-info { padding: 2.5rem; background: white; position: relative; z-index: 2; }
+    .project-info h3 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .project-info p { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .project-info .price { color: var(--gold); font-weight: 600; font-size: 1.1rem; }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 5rem 2rem;
+      background: white;
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .stat { text-align: center; width: 25%; }
+    .stat h3 { font-size: 3.5rem; color: var(--primary); margin-bottom: 0.5rem; }
+    .stat p { color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+
+    .contact-wrap {
+      background: white;
+      padding: 4rem;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.04);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .contact-form input, .contact-form textarea {
+      width: 100%;
+      padding: 16px 20px;
+      margin-bottom: 1.5rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      color: var(--primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .contact-form input:focus, .contact-form textarea:focus {
+      border-color: var(--gold);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(179,139,77,0.1);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--primary);
+      color: white;
+    }
+    footer p { color: #94a3b8; font-size: 0.85rem; }
+    footer .gold-text { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; display: block; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="logo">Omkara.</div>
+    <div class="links">
+      <a href="#projects">Residences</a>
+      <a href="#about">Heritage</a>
+      <a href="#contact">Inquire</a>
+      <button class="reset-btn" onclick="localStorage.removeItem('__wapzio_vid_omkara-main'); location.reload();">Reset Session</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Elevate Your Living Standard.</h1>
+      <p>Discover an exclusive collection of architecturally magnificent homes designed for the most discerning individuals.</p>
+      <a href="#projects" class="btn">View Portfolio</a>
+    </div>
+  </div>
+
+  <section id="projects">
+    <h2 class="section-title">Exclusive Residences</h2>
+    <p class="subtitle">Where Architecture meets Art</p>
+    <div class="projects-grid">
+      <div class="project-card" onclick="alert('Viewing The Skyline Penthouse details')">
+        <div style="overflow: hidden;"><img src="/assets/interior.png" alt="Penthouse Interior"></div>
+        <div class="project-info">
+          <h3>The Skyline Penthouse</h3>
+          <p>Unobstructed panoramic city views with imported marble finishes and private elevator access.</p>
+          <div class="price">From $8.5M</div>
+        </div>
+      </div>
+      <div class="project-card" onclick="alert('Viewing Tropical Haven details')">
+        <div style="overflow: hidden;"><img src="/assets/villa.png" alt="Tropical Villa"></div>
+        <div class="project-info">
+          <h3>Tropical Haven Villa</h3>
+          <p>An architectural masterpiece featuring an infinity pool and lush, private botanical gardens.</p>
+          <div class="price">From $12.2M</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats" id="stats">
+    <div class="stat"><h3>25+</h3><p>Years Heritage</p></div>
+    <div class="stat"><h3>$1.2B</h3><p>Real Estate Sold</p></div>
+    <div class="stat"><h3>14</h3><p>Global Awards</p></div>
+  </div>
+
+  <section id="about">
+    <h2 class="section-title">Our Heritage</h2>
+    <p class="subtitle">A legacy of uncompromising quality</p>
+    <p style="color: #64748b; font-size: 1.1rem; text-align: center; max-width: 800px; margin: 0 auto 3rem;">
+      For over two decades, Omkara has redefined luxury real estate. We do not just build homes; we curate lifestyles. Every property in our portfolio represents the pinnacle of modern architecture, featuring bespoke materials, sustainable technologies, and breathtaking locations.
+    </p>
+    <div style="text-align: center;">
+      <a href="#contact" class="btn">Private Viewing</a>
+    </div>
+  </section>
+
+  <section id="contact" style="background: var(--bg); padding-bottom: 8rem;">
+    <h2 class="section-title">Inquire Privately</h2>
+    <p class="subtitle">Schedule a consultation with our advisors</p>
+    <div class="contact-wrap contact-form">
+      <input type="text" id="visitor-name" placeholder="Full Name" />
+      <input type="email" id="visitor-email" placeholder="Email Address" />
+      <input type="tel" id="visitor-phone" placeholder="Phone Number (Optional)" />
+      <textarea id="visitor-message" rows="4" placeholder="How can we assist you?"></textarea>
+      <button class="btn" style="width: 100%; display: block;" onclick="submitLead()">Send Inquiry</button>
+    </div>
+  </section>
+
+  <script>
+    function submitLead() {
+      var name  = document.getElementById('visitor-name').value.trim();
+      var email = document.getElementById('visitor-email').value.trim();
+      var phone = document.getElementById('visitor-phone').value.trim();
+
+      if (!name && !email) {
+        showMsg('Please enter your name or email.', 'error');
+        return;
+      }
+
+      var STORAGE_KEY = '__wapzio_vid_omkara-main';
+      var visitorId;
+      try {
+        visitorId = localStorage.getItem(STORAGE_KEY);
+        if (!visitorId) {
+          visitorId = 'v_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now().toString(36);
+          localStorage.setItem(STORAGE_KEY, visitorId);
+        }
+      } catch(e) {
+        visitorId = 'v_anon_' + Math.random().toString(36).substr(2, 8);
+      }
+
+      var payload = {
+        siteId: 'omkara-main',
+        visitorId: visitorId,
+        events: [
+          { type: 'identify', timestamp: new Date().toISOString(), data: { name: name, email: email, phone: phone } },
+          { type: 'click', timestamp: new Date().toISOString(), data: { tag: 'BUTTON', text: 'Send Inquiry (Luxury Form)', id: 'submit-btn' } }
+        ],
+        meta: { userAgent: navigator.userAgent, referrer: document.referrer, page: location.pathname }
+      };
+
+      fetch('/api/tracking/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        showMsg('Thank you, ' + (name || '') + '. An advisor will contact you shortly.', 'success');
+        document.getElementById('visitor-name').value = '';
+        document.getElementById('visitor-email').value = '';
+        document.getElementById('visitor-phone').value = '';
+        document.getElementById('visitor-message').value = '';
+      })
+      .catch(function() {
+        showMsg('Inquiry received. Thank you.', 'success');
+      });
+    }
+
+    function showMsg(text, type) {
+      var existing = document.getElementById('form-msg');
+      if (existing) existing.remove();
+      var el = document.createElement('div');
+      el.id = 'form-msg';
+      el.textContent = text;
+      el.style.cssText = 'margin-top:1.5rem;padding:16px 20px;border-radius:6px;font-size:0.95rem;font-family:"Inter",sans-serif;' +
+        (type === 'success'
+          ? 'background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;'
+          : 'background:#fef2f2;border:1px solid #fecaca;color:#991b1b;');
+      document.querySelector('.contact-form').appendChild(el);
+      setTimeout(function() { if (el.parentNode) el.remove(); }, 6000);
+    }
+  </script>
+
+  <footer>
+    <span class="gold-text">Omkara.</span>
+    <p>© 2026 Omkara Group Estate. Premium Real Estate Development.</p>
+  </footer>
+
+</body>
+</html>

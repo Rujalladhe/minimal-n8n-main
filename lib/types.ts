@@ -15,7 +15,8 @@ export type NodeType =
   | "researchAgent"
   | "aiScoreEngine"
   | "leadClassifier"
-  | "kpiDashboard";
+  | "kpiDashboard"
+  | "websiteTracker";
 
 export interface NodeData {
   label: string;

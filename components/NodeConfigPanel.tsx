@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { X, Send, Trash2, MessageSquare, ExternalLink } from "lucide-react";
+import { X, Send, Trash2, MessageSquare, ExternalLink, Eye, Copy, Check, Users, Clock, MousePointerClick } from "lucide-react";
 
 interface NodeConfigPanelProps {
   nodeId: string;
@@ -294,6 +294,127 @@ function ChatbotContextView({
   );
 }
 
+// ─── WEBSITE TRACKER VIEW ────────────────────────────────────────────
+function WebsiteTrackerView({ data }: { data: any }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyEmbed = () => {
+    if (data?.embedCode) {
+      navigator.clipboard.writeText(data.embedCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (!data) {
+    return (
+      <div className="mt-6 space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-16 bg-[#f0f2f5] rounded-lg animate-pulse" />
+        ))}
+        <p className="text-xs text-[#65676b] text-center mt-4">
+          Execute the workflow to generate tracking code
+        </p>
+      </div>
+    );
+  }
+
+  const analytics = data.analytics || {};
+
+  return (
+    <div className="mt-6 space-y-4">
+      {/* Embed Code */}
+      <div className="p-3 bg-[#f0f2f5] rounded-lg border border-[#d1d7db]">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-bold text-[#128c7e] uppercase tracking-wider">Embed Code</h4>
+          <button
+            onClick={copyEmbed}
+            className="flex items-center gap-1 text-[10px] font-bold text-[#128c7e] hover:bg-white px-2 py-1 rounded-md transition-colors"
+          >
+            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+            {copied ? "Copied!" : "Copy"}
+          </button>
+        </div>
+        <pre className="text-[10px] text-[#1c1e21] font-mono bg-white p-2 rounded border border-[#d1d7db]/50 overflow-x-auto whitespace-pre-wrap break-all">
+          {data.embedCode}
+        </pre>
+        <p className="text-[10px] text-[#65676b] mt-2">
+          Add this script tag to your website&apos;s {'<head>'} or before {'</body>'}
+        </p>
+      </div>
+
+      {/* Live Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="p-2.5 bg-white rounded-lg border border-[#d1d7db] shadow-sm text-center">
+          <Users className="w-4 h-4 text-[#128c7e] mx-auto mb-1" />
+          <p className="text-lg font-bold text-[#1c1e21]">{analytics.totalVisitors || 0}</p>
+          <p className="text-[9px] text-[#65676b] uppercase tracking-wider font-bold">Visitors</p>
+        </div>
+        <div className="p-2.5 bg-white rounded-lg border border-[#d1d7db] shadow-sm text-center">
+          <Clock className="w-4 h-4 text-[#f59e0b] mx-auto mb-1" />
+          <p className="text-lg font-bold text-[#1c1e21]">{analytics.avgTimeSeconds || 0}s</p>
+          <p className="text-[9px] text-[#65676b] uppercase tracking-wider font-bold">Avg Time</p>
+        </div>
+        <div className="p-2.5 bg-white rounded-lg border border-[#d1d7db] shadow-sm text-center">
+          <MousePointerClick className="w-4 h-4 text-[#ef4444] mx-auto mb-1" />
+          <p className="text-lg font-bold text-[#1c1e21]">{analytics.avgClicks || 0}</p>
+          <p className="text-[9px] text-[#65676b] uppercase tracking-wider font-bold">Avg Clicks</p>
+        </div>
+      </div>
+
+      {/* Score Distribution */}
+      {analytics.scoreDistribution && (
+        <div className="p-3 bg-white rounded-lg border border-[#d1d7db] shadow-sm">
+          <h4 className="text-[10px] text-[#65676b] uppercase tracking-wider font-bold mb-2">Lead Score Distribution</h4>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-[#f0f2f5] rounded-full h-3 overflow-hidden flex">
+              {analytics.scoreDistribution.hot > 0 && (
+                <div
+                  className="bg-[#ef4444] h-full transition-all"
+                  style={{ width: `${(analytics.scoreDistribution.hot / (analytics.totalVisitors || 1)) * 100}%` }}
+                />
+              )}
+              {analytics.scoreDistribution.warm > 0 && (
+                <div
+                  className="bg-[#f59e0b] h-full transition-all"
+                  style={{ width: `${(analytics.scoreDistribution.warm / (analytics.totalVisitors || 1)) * 100}%` }}
+                />
+              )}
+              {analytics.scoreDistribution.cold > 0 && (
+                <div
+                  className="bg-[#3b82f6] h-full transition-all"
+                  style={{ width: `${(analytics.scoreDistribution.cold / (analytics.totalVisitors || 1)) * 100}%` }}
+                />
+              )}
+            </div>
+          </div>
+          <div className="flex justify-between mt-2 text-[10px]">
+            <span className="text-[#ef4444] font-bold">🔥 {analytics.scoreDistribution.hot || 0} Hot</span>
+            <span className="text-[#f59e0b] font-bold">🟡 {analytics.scoreDistribution.warm || 0} Warm</span>
+            <span className="text-[#3b82f6] font-bold">🔵 {analytics.scoreDistribution.cold || 0} Cold</span>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking Status */}
+      <div className="p-3 bg-[#e7fce3] rounded-lg border border-[#25d366]/20">
+        <h4 className="text-xs font-bold text-[#128c7e] mb-2">✓ Tracking Active</h4>
+        <div className="flex flex-wrap gap-2">
+          {data.trackingEnabled?.clicks && (
+            <span className="text-[10px] bg-white px-2 py-1 rounded-full border border-[#25d366]/30 text-[#075e54] font-medium">Clicks</span>
+          )}
+          {data.trackingEnabled?.scroll && (
+            <span className="text-[10px] bg-white px-2 py-1 rounded-full border border-[#25d366]/30 text-[#075e54] font-medium">Scroll</span>
+          )}
+          {data.trackingEnabled?.time && (
+            <span className="text-[10px] bg-white px-2 py-1 rounded-full border border-[#25d366]/30 text-[#075e54] font-medium">Time</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN CONFIG PANEL ───────────────────────────────────────────────
 export default function NodeConfigPanel({
   nodeId,
@@ -328,6 +449,7 @@ export default function NodeConfigPanel({
 
   const isKpiDashboard = node.data.type === "kpiDashboard";
   const isChatbot = node.data.type === "aiChatbot";
+  const isWebsiteTracker = node.data.type === "websiteTracker";
 
   return (
     <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white border-l border-[#d1d7db] z-50 overflow-y-auto custom-scrollbar shadow-2xl">
@@ -463,8 +585,34 @@ export default function NodeConfigPanel({
           </div>
         )}
 
+        {/* Website Tracker View */}
+        {isWebsiteTracker && (
+          <div className="pt-6 border-t border-[#d1d7db]">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-xs font-bold text-[#128c7e] uppercase tracking-wider flex items-center gap-2">
+                <Eye className="h-3.5 w-3.5" /> Visitor Tracking
+              </h4>
+              {(() => {
+                const targetSiteId = node.data.output?.siteId || (config.websiteUrl ? config.websiteUrl.replace(/https?:\/\//, "").replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").substring(0, 40) : "");
+                return targetSiteId ? (
+                  <a
+                    href={`/analytics/${targetSiteId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#128c7e] hover:bg-[#e7fce3] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-[#25d366]/30 shadow-sm"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Open Dashboard
+                  </a>
+                ) : null;
+              })()}
+            </div>
+            <WebsiteTrackerView data={node.data.output} />
+          </div>
+        )}
+
         {/* Last Output */}
-        {node.data.output && !isKpiDashboard && (
+        {node.data.output && !isKpiDashboard && !isWebsiteTracker && (
           <div className="mt-8 p-4 bg-[#f0f2f5] rounded-xl border border-[#d1d7db] shadow-inner">
             <h4 className="text-xs font-bold text-[#65676b] mb-3 uppercase tracking-wider">
               Last Output

@@ -109,6 +109,11 @@ export class WorkflowExecutor {
     config: Record<string, any>,
     input: any
   ): Promise<NodeExecutionResult> {
+    // Website Tracker node
+    if (config.type === "websiteTracker") {
+      return this.executeWebsiteTracker(config, input);
+    }
+
     // Trigger nodes pass through their input or generate initial data
     return {
       success: true,
@@ -117,6 +122,72 @@ export class WorkflowExecutor {
         config: config,
       },
     };
+  }
+
+  private async executeWebsiteTracker(
+    config: Record<string, any>,
+    input: any
+  ): Promise<NodeExecutionResult> {
+    try {
+      const { websiteUrl, siteName, trackClicks, trackScroll, trackTime } = config;
+
+      if (!websiteUrl) {
+        return {
+          success: false,
+          error: "Website URL is required",
+        };
+      }
+
+      // Generate a siteId from the URL
+      const siteId = websiteUrl
+        .replace(/https?:\/\//, "")
+        .replace(/[^a-zA-Z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .substring(0, 40);
+
+      const scriptUrl = `${this.baseUrl}/api/tracking/script?siteId=${encodeURIComponent(siteId)}`;
+      const embedCode = `<script src="${scriptUrl}" defer></script>`;
+
+      // Try to fetch current analytics
+      let analytics = null;
+      try {
+        const response = await fetch(`${this.baseUrl}/api/tracking/analytics?siteId=${encodeURIComponent(siteId)}`);
+        if (response.ok) {
+          analytics = await response.json();
+        }
+      } catch (e) {
+        // Analytics fetch is optional
+      }
+
+      return {
+        success: true,
+        output: {
+          siteId,
+          websiteUrl,
+          siteName: siteName || websiteUrl,
+          scriptUrl,
+          embedCode,
+          trackingEnabled: {
+            clicks: trackClicks !== "false",
+            scroll: trackScroll !== "false",
+            time: trackTime !== "false",
+          },
+          analytics: analytics || {
+            totalVisitors: 0,
+            activeVisitors: 0,
+            avgTimeSeconds: 0,
+          },
+          dashboardUrl: `/analytics/${siteId}`,
+          generatedAt: new Date().toISOString(),
+        },
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || "Website tracker setup failed",
+      };
+    }
   }
 
   private async executeAINodeType(
